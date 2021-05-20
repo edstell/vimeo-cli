@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 
 	"github.com/edstell/vimeo-cli/vimeo"
@@ -18,9 +17,7 @@ type Config struct {
 	AccessToken  string `json:"access_token"`
 }
 
-func usage() error {
-	return errors.New("vimeo service operation arguments...")
-}
+const usage = "vimeo service methods [arguments...]"
 
 func exit(err error) {
 	os.Stderr.WriteString(err.Error() + "\n")
@@ -48,9 +45,34 @@ func main() {
 	client := vimeo.NewClient(vimeoapi.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: config.AccessToken},
 	)), nil))
-	for _, service := range client.Services() {
+	args := os.Args[1:]
+	if len(args) < 1 {
+		os.Stderr.WriteString("Available services:\n")
+		for _, service := range client.Services() {
+			os.Stderr.WriteString(service.String() + "\n")
+		}
+		exit(errors.New(usage))
+	}
+	service := client.Service(args[0])
+	if service == nil {
+		exit(errors.New(usage))
+	}
+	if len(args) < 2 {
+		os.Stderr.WriteString(usage + "\nMethods for '" + service.String() + "':\n")
 		for _, method := range service.Methods() {
-			fmt.Printf("%s.%s\n", service, method.Name)
+			os.Stderr.WriteString(method.Name + "\n")
 		}
 	}
+	// for _, service := range client.Services() {
+	// 	for _, method := range service.Methods() {
+	// 		args := "("
+	// 		for i := 1; i < method.Type.NumIn(); i++ {
+	// 			if i != 1 {
+	// 				args = args + ", "
+	// 			}
+	// 			args = args + method.Type.In(i).String()
+	// 		}
+	// 		fmt.Printf("%s.%s%s)\n", service, method.Name, args)
+	// 	}
+	// }
 }

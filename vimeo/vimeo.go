@@ -70,6 +70,10 @@ func (c *Client) Service(name string) *Service {
 	}
 }
 
+func (c *Client) Value() reflect.Value {
+	return c.client
+}
+
 // Methods lists the methods available for the given service.
 func (s *Service) Methods() []reflect.Method {
 	serviceType := s.service.Type()
@@ -78,6 +82,16 @@ func (s *Service) Methods() []reflect.Method {
 		methods = append(methods, serviceType.Method(i))
 	}
 	return methods
+}
+
+// Method returns the Service.Method for the given name.
+func (s *Service) Method(name string) (reflect.Method, bool) {
+	s.service.MethodByName(name)
+	return s.service.Type().MethodByName(name)
+}
+
+func (s *Service) Value() reflect.Value {
+	return s.service
 }
 
 func (s *Service) String() string {
