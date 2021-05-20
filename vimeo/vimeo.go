@@ -1,7 +1,6 @@
 package vimeo
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/silentsokolov/go-vimeo/vimeo"
@@ -21,25 +20,26 @@ type Service struct {
 	service reflect.Value
 }
 
+type Method struct {
+	name   string
+	method reflect.Value
+}
+
 // NewClient stores the vimeo.Client in our reflection wrapper.
 func NewClient(client *vimeo.Client) *Client {
-	return &Client{reflect.ValueOf(client).Elem()}
+	return &Client{reflect.ValueOf(client)}
 }
 
 // Services returns the list of services available on the vimeo.Client.
 func (c *Client) Services() []*Service {
-	services := make([]*Service, 0, c.client.NumField())
+	services := make([]*Service, 0, c.client.Elem().NumField())
 	for i := 0; i < clientType.NumField(); i++ {
 		fieldName := clientType.Field(i).Name
-		fieldPtr := c.client.FieldByName(fieldName)
-		if fieldPtr.Kind() != reflect.Ptr {
+		field := c.client.Elem().FieldByName(fieldName)
+		if field.Kind() != reflect.Ptr {
 			continue
 		}
-		field := fieldPtr.Elem()
-		if field.Kind() != reflect.Struct {
-			continue
-		}
-		if !field.Type().ConvertibleTo(serviceType) {
+		if !field.Type().Elem().ConvertibleTo(serviceType) {
 			continue
 		}
 		services = append(services, &Service{
@@ -54,16 +54,14 @@ func (c *Client) Services() []*Service {
 // wrapper if the named field is found and is of type vimeo.service, otherwise
 // nil is returned.
 func (c *Client) Service(name string) *Service {
-	fieldPtr := c.client.FieldByName(name)
-	if !fieldPtr.IsValid() {
+	field := c.client.Elem().FieldByName(name)
+	if !field.IsValid() {
 		return nil
 	}
-	if fieldPtr.Kind() != reflect.Ptr {
+	if field.Kind() != reflect.Ptr {
 		return nil
 	}
-	fmt.Println("count methods: ", fieldPtr.NumMethod())
-	field := fieldPtr.Elem()
-	if !field.Type().ConvertibleTo(serviceType) {
+	if !field.Type().Elem().ConvertibleTo(serviceType) {
 		return nil
 	}
 	return &Service{
@@ -72,8 +70,14 @@ func (c *Client) Service(name string) *Service {
 	}
 }
 
-func (s *Service) Methods() []string {
-	return nil
+// Methods lists the methods available for the given service.
+func (s *Service) Methods() []reflect.Method {
+	serviceType := s.service.Type()
+	methods := make([]reflect.Method, 0, serviceType.NumMethod())
+	for i := 0; i < serviceType.NumMethod(); i++ {
+		methods = append(methods, serviceType.Method(i))
+	}
+	return methods
 }
 
 func (s *Service) String() string {

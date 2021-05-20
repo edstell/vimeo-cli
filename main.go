@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 
 	"github.com/edstell/vimeo-cli/vimeo"
@@ -47,8 +48,9 @@ func main() {
 	client := vimeo.NewClient(vimeoapi.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: config.AccessToken},
 	)), nil))
-	// if len(os.Args[1:]) < 1 {
-	// 	exit(usage())
-	// }
-	client.Service("Users")
+	for _, service := range client.Services() {
+		for _, method := range service.Methods() {
+			fmt.Printf("%s.%s\n", service, method.Name)
+		}
+	}
 }
