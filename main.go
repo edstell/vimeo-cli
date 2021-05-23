@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"reflect"
 
@@ -48,11 +49,10 @@ func main() {
 		&oauth2.Token{AccessToken: config.AccessToken},
 	)), nil))
 	if len(os.Args) < 2 {
-		os.Stderr.WriteString("Available services:\n")
 		services := client.Services()
-		os.Stderr.WriteString(morestrings.JoinSlice(services, func(i int) string {
+		fmt.Fprintf(os.Stderr, "vimeo [%s] method\n", morestrings.JoinSlice(services, func(i int) string {
 			return services[i].Name()
-		}, "\n") + "\n")
+		}, " "))
 		os.Exit(1)
 	}
 	service := client.Service(os.Args[1])
@@ -60,11 +60,10 @@ func main() {
 		exit(errors.New(usage))
 	}
 	if len(os.Args) < 3 {
-		os.Stderr.WriteString("\nMethods for '" + service.Name() + "':\n")
 		methods := service.Methods()
-		os.Stderr.WriteString(morestrings.JoinSlice(methods, func(i int) string {
+		fmt.Fprintf(os.Stderr, "vimeo %s [%s]\n", service.Name(), morestrings.JoinSlice(methods, func(i int) string {
 			return methods[i].Name
-		}, "\n") + "\n")
+		}, " "))
 		os.Exit(1)
 	}
 	method, ok := service.Method(os.Args[2])
