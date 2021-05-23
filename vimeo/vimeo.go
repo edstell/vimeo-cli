@@ -1,6 +1,8 @@
 package vimeo
 
 import (
+	"errors"
+	"fmt"
 	"reflect"
 
 	"github.com/silentsokolov/go-vimeo/vimeo"
@@ -48,21 +50,21 @@ func (c *Client) Services() []*Service {
 // Service looks up the named field, returning it in a Service reflection
 // wrapper if the named field is found and is of type vimeo.service, otherwise
 // nil is returned.
-func (c *Client) Service(name string) *Service {
+func (c *Client) Service(name string) (*Service, error) {
 	field := c.client.Elem().FieldByName(name)
 	if !field.IsValid() {
-		return nil
+		return nil, errors.New(fmt.Sprintf("'%s' is not a field in the vimeo client", name))
 	}
 	if field.Kind() != reflect.Ptr {
-		return nil
+		return nil, errors.New("'%s' is not a field of type '*vimeo.service'")
 	}
 	if !field.Type().Elem().ConvertibleTo(serviceType) {
-		return nil
+		return nil, errors.New("'%s' is not a field of type '*vimeo.service'")
 	}
 	return &Service{
 		name:    name,
 		service: field,
-	}
+	}, nil
 }
 
 func (c *Client) Value() reflect.Value {

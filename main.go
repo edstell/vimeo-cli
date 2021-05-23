@@ -20,8 +20,6 @@ type Config struct {
 	AccessToken  string `json:"access_token"`
 }
 
-const usage = "vimeo service methods [arguments...]"
-
 func exit(err error) {
 	os.Stderr.WriteString(err.Error() + "\n")
 	os.Exit(1)
@@ -55,9 +53,9 @@ func main() {
 		}, " "))
 		os.Exit(1)
 	}
-	service := client.Service(os.Args[1])
-	if service == nil {
-		exit(errors.New(usage))
+	service, err := client.Service(os.Args[1])
+	if err != nil {
+		exit(err)
 	}
 	if len(os.Args) < 3 {
 		methods := service.Methods()
@@ -68,7 +66,7 @@ func main() {
 	}
 	method, ok := service.Method(os.Args[2])
 	if !ok {
-		exit(errors.New(usage))
+		exit(errors.New(fmt.Sprintf("'%s' is not a method on %s", os.Args[2], service.Name())))
 	}
 	args := []json.RawMessage{}
 	if err := json.NewDecoder(os.Stdin).Decode(&args); err != nil {
