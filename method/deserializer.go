@@ -35,8 +35,22 @@ func (f UnmarshalerFunc) UnmarshalJSON(b []byte) error {
 // reflect type provided into the passed interface.
 func Unmarshaler(pv *interface{}, t reflect.Type) json.Unmarshaler {
 	return UnmarshalerFunc(func(b []byte) error {
-		*pv = reflect.Zero(t).Interface()
-		return json.Unmarshal(b, pv)
+		var v interface{}
+		switch t.Kind() {
+		case reflect.Ptr:
+			v = reflect.New(t.Elem()).Interface()
+		default:
+			v = reflect.New(t).Interface()
+		}
+		if err := json.Unmarshal(b, v); err != nil {
+			return err
+		}
+		if t.Kind() == reflect.Ptr {
+			*pv = v
+			return nil
+		}
+		*pv = reflect.ValueOf(v).Elem().Interface()
+		return nil
 	})
 }
 

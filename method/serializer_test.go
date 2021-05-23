@@ -10,6 +10,9 @@ import (
 )
 
 func TestMarshaler(t *testing.T) {
+	type s struct {
+		Value string `json:"value"`
+	}
 	t.Run("marshal scalar", func(t *testing.T) {
 		t.Parallel()
 		result, err := Marshaler(reflect.ValueOf("string")).MarshalJSON()
@@ -18,9 +21,13 @@ func TestMarshaler(t *testing.T) {
 	})
 	t.Run("marshal struct", func(t *testing.T) {
 		t.Parallel()
-		result, err := Marshaler(reflect.ValueOf(struct {
-			Value string `json:"value"`
-		}{"string"})).MarshalJSON()
+		result, err := Marshaler(reflect.ValueOf(s{"string"})).MarshalJSON()
+		require.NoError(t, err)
+		assert.Equal(t, []byte(`{"value":"string"}`), result)
+	})
+	t.Run("marshal struct ptr", func(t *testing.T) {
+		t.Parallel()
+		result, err := Marshaler(reflect.ValueOf(&s{"string"})).MarshalJSON()
 		require.NoError(t, err)
 		assert.Equal(t, []byte(`{"value":"string"}`), result)
 	})
