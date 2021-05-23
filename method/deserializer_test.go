@@ -1,6 +1,7 @@
 package method
 
 import (
+	"bytes"
 	"reflect"
 	"testing"
 
@@ -36,4 +37,21 @@ func TestUnmarshaler(t *testing.T) {
 		assert.IsType(t, &s{}, result)
 		assert.Equal(t, &s{"string"}, result)
 	})
+}
+
+func TestJSONDeserializer(t *testing.T) {
+	type s struct {
+		Key string `json:"key"`
+	}
+	result, err := JSONDeserializer(Unmarshaler).Deserialize(bytes.NewReader([]byte(`["a",1,true,{"key":"value"}]`)), []reflect.Type{
+		reflect.TypeOf(""),
+		reflect.TypeOf(0),
+		reflect.TypeOf(false),
+		reflect.TypeOf(s{}),
+	})
+	require.NoError(t, err)
+	assert.Equal(t, "a", result[0].Interface())
+	assert.Equal(t, 1, result[1].Interface())
+	assert.Equal(t, true, result[2].Interface())
+	assert.Equal(t, s{"value"}, result[3].Interface())
 }

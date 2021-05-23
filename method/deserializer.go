@@ -67,7 +67,7 @@ func JSONDeserializer(unmarshaler func(*interface{}, reflect.Type) json.Unmarsha
 		vs := make([]reflect.Value, 0, len(ts))
 		for i, t := range ts {
 			var v interface{}
-			if err := json.Unmarshal(data[i], unmarshaler(&v, t)); err != nil {
+			if err := unmarshaler(&v, t).UnmarshalJSON(data[i]); err != nil {
 				return nil, err
 			}
 			vs = append(vs, reflect.ValueOf(v))
