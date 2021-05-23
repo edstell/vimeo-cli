@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"reflect"
 
+	"github.com/edstell/morestrings"
 	"github.com/edstell/vimeo-cli/vimeo"
 	vimeoapi "github.com/silentsokolov/go-vimeo/vimeo"
 	"golang.org/x/oauth2"
@@ -45,34 +47,56 @@ func main() {
 	client := vimeo.NewClient(vimeoapi.NewClient(oauth2.NewClient(context.Background(), oauth2.StaticTokenSource(
 		&oauth2.Token{AccessToken: config.AccessToken},
 	)), nil))
-	args := os.Args[1:]
-	if len(args) < 1 {
+	if len(os.Args) < 2 {
 		os.Stderr.WriteString("Available services:\n")
-		for _, service := range client.Services() {
-			os.Stderr.WriteString(service.String() + "\n")
-		}
-		exit(errors.New(usage))
+		services := client.Services()
+		os.Stderr.WriteString(morestrings.JoinSlice(services, func(i int) string {
+			return services[i].Name()
+		}, "\n") + "\n")
+		os.Exit(1)
 	}
-	service := client.Service(args[0])
+	service := client.Service(os.Args[1])
 	if service == nil {
 		exit(errors.New(usage))
 	}
-	if len(args) < 2 {
-		os.Stderr.WriteString(usage + "\nMethods for '" + service.String() + "':\n")
-		for _, method := range service.Methods() {
-			os.Stderr.WriteString(method.Name + "\n")
+	if len(os.Args) < 3 {
+		os.Stderr.WriteString("\nMethods for '" + service.Name() + "':\n")
+		methods := service.Methods()
+		os.Stderr.WriteString(morestrings.JoinSlice(methods, func(i int) string {
+			return methods[i].Name
+		}, "\n") + "\n")
+		os.Exit(1)
+	}
+	method, ok := service.Method(os.Args[2])
+	if !ok {
+		exit(errors.New(usage))
+	}
+	args := []json.RawMessage{}
+	if err := json.NewDecoder(os.Stdin).Decode(&args); err != nil {
+		exit(err)
+	}
+	in := make([]reflect.Value, 0, method.Type.NumIn())
+	in = append(in, service.Value())
+	in = append(in, reflect.ValueOf(""))
+	// for i := 1; i < cap(in) && i < len(args)-1; i++ {
+	// 	v := reflect.Zero(method.Type.In(i)).Interface()
+	// 	if err := json.Unmarshal(args[i-1], &v); err != nil {
+	// 		exit(err)
+	// 	}
+	// 	in = append(in, reflect.ValueOf(v))
+	// }
+	res := method.Func.Call(in)
+	if len(res) == 0 {
+		os.Exit(0)
+	}
+	for _, v := range res {
+		if err, ok := v.Interface().(error); ok && err != nil {
+			exit(err)
 		}
 	}
-	// for _, service := range client.Services() {
-	// 	for _, method := range service.Methods() {
-	// 		args := "("
-	// 		for i := 1; i < method.Type.NumIn(); i++ {
-	// 			if i != 1 {
-	// 				args = args + ", "
-	// 			}
-	// 			args = args + method.Type.In(i).String()
-	// 		}
-	// 		fmt.Printf("%s.%s%s)\n", service, method.Name, args)
-	// 	}
-	// }
+	for _, v := range res {
+		if err := json.NewEncoder(os.Stdout).Encode(v.Interface()); err != nil {
+			// Skip.
+		}
+	}
 }

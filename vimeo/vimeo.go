@@ -20,11 +20,6 @@ type Service struct {
 	service reflect.Value
 }
 
-type Method struct {
-	name   string
-	method reflect.Value
-}
-
 // NewClient stores the vimeo.Client in our reflection wrapper.
 func NewClient(client *vimeo.Client) *Client {
 	return &Client{reflect.ValueOf(client)}
@@ -94,6 +89,6 @@ func (s *Service) Value() reflect.Value {
 	return s.service
 }
 
-func (s *Service) String() string {
+func (s *Service) Name() string {
 	return s.name
 }
