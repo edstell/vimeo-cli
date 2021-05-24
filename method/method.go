@@ -58,12 +58,16 @@ func (c *Caller) Call(name string, in io.Reader, out io.Writer) error {
 	return c.s.Serialize(out, m.Call(argv))
 }
 
+// UsingSerializer modifies the Caller to use the provided Serializer when
+// serializing results from calling the method.
 func UsingSerializer(s Serializer) CallOption {
 	return func(c *Caller) {
 		c.s = s
 	}
 }
 
+// UsingDeserializer modifies the Caller to use the provided Deserializer when
+// desrializing arguments for calling the method.
 func UsingDeserializer(d Deserializer) CallOption {
 	return func(c *Caller) {
 		c.d = d
