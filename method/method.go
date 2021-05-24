@@ -38,7 +38,7 @@ func NewCaller(v reflect.Value, opts ...CallOption) *Caller {
 func (c *Caller) Call(name string, in io.Reader, out io.Writer) error {
 	m := c.v.MethodByName(name)
 	if !m.IsValid() {
-		return errors.New(fmt.Sprintf("no method '%s' available", name))
+		return errors.New(fmt.Sprintf("no method by name '%s'", name))
 	}
 	argc := m.Type().NumIn()
 	if argc == 0 {

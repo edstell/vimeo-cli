@@ -29,7 +29,7 @@ func main() {
 	}
 	service := serviceByName(client, args[0])
 	if !service.IsValid() {
-		exit(errors.New(fmt.Sprintf("no method by name '%s'", args[0])))
+		exit(errors.New(fmt.Sprintf("no service by name '%s'", args[0])))
 	}
 	if len(args) < 2 {
 		exit(errors.New(fmt.Sprintf("vimeo %s [%s]", args[0], strings.Join(methodNames(service), " "))))
