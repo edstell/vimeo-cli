@@ -36,19 +36,21 @@ func NewCaller(v reflect.Value, opts ...CallOption) *Caller {
 // Call the named method, reading input data from the io.Reader and writing
 // output data to the io.Writer.
 func (c *Caller) Call(name string, in io.Reader, out io.Writer) error {
-	m, mt := c.v.MethodByName(name), c.v.Type()
+	m := c.v.MethodByName(name)
 	if !m.IsValid() {
 		return errors.New(fmt.Sprintf("no method '%s' available", name))
 	}
-	ts := make([]reflect.Type, 0, mt.NumIn()-1)
-	for i := 1; i < cap(ts); i++ {
-		ts = append(ts, mt.In(i))
+	argc := m.Type().NumIn()
+	if argc == 0 {
+		return c.s.Serialize(out, m.Call(nil))
 	}
-	// TODO Additionally cater for variadic arguments.
-	args, err := c.d.Deserialize(in, ts)
+	argt := make([]reflect.Type, 0, argc)
+	for i := 0; i < cap(argt); i++ {
+		argt = append(argt, m.Type().In(i))
+	}
+	argv, err := c.d.Deserialize(in, argt)
 	if err != nil {
 		return err
 	}
-	res := c.v.Call(args)
-	return c.s.Serialize(out, res)
+	return c.s.Serialize(out, m.Call(argv))
 }

@@ -83,7 +83,6 @@ func (s *Service) Methods() []reflect.Method {
 
 // Method returns the Service.Method for the given name.
 func (s *Service) Method(name string) (reflect.Method, bool) {
-	s.service.MethodByName(name)
 	return s.service.Type().MethodByName(name)
 }
 
