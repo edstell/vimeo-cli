@@ -57,3 +57,15 @@ func (c *Caller) Call(name string, in io.Reader, out io.Writer) error {
 	}
 	return c.s.Serialize(out, m.Call(argv))
 }
+
+func UsingSerializer(s Serializer) CallOption {
+	return func(c *Caller) {
+		c.s = s
+	}
+}
+
+func UsingDeserializer(d Deserializer) CallOption {
+	return func(c *Caller) {
+		c.d = d
+	}
+}
