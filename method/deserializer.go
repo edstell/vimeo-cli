@@ -2,7 +2,6 @@ package method
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"reflect"
 )
@@ -56,22 +55,24 @@ func Unmarshaler(pv *interface{}, t reflect.Type) json.Unmarshaler {
 
 // JSONDeserializer deserializes data from the io.Reader as the types provided.
 func JSONDeserializer(unmarshaler func(*interface{}, reflect.Type) json.Unmarshaler) Deserializer {
-	return DeserializerFunc(func(r io.Reader, ts []reflect.Type) ([]reflect.Value, error) {
-		var data []json.RawMessage
-		if err := json.NewDecoder(r).Decode(&data); err != nil {
+	return DeserializerFunc(func(r io.Reader, argt []reflect.Type) ([]reflect.Value, error) {
+		var argr []json.RawMessage
+		if err := json.NewDecoder(r).Decode(&argr); err != nil {
 			return nil, err
 		}
-		if len(data) != len(ts) {
-			return nil, errors.New("input data length doesn't match count of types provided")
+		// Append types to account for variadic arguments.
+		itc := len(argr) - len(argt)
+		for i := 0; i < itc; i++ {
+			argt = append(argt, argt[len(argt)-1])
 		}
-		vs := make([]reflect.Value, 0, len(ts))
-		for i, t := range ts {
+		argv := make([]reflect.Value, 0, len(argr))
+		for i, arg := range argr {
 			var v interface{}
-			if err := unmarshaler(&v, t).UnmarshalJSON(data[i]); err != nil {
+			if err := unmarshaler(&v, argt[i]).UnmarshalJSON(arg); err != nil {
 				return nil, err
 			}
-			vs = append(vs, reflect.ValueOf(v))
+			argv = append(argv, reflect.ValueOf(v))
 		}
-		return vs, nil
+		return argv, nil
 	})
 }

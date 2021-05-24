@@ -48,6 +48,9 @@ func (c *Caller) Call(name string, in io.Reader, out io.Writer) error {
 	for i := 0; i < cap(argt); i++ {
 		argt = append(argt, m.Type().In(i))
 	}
+	if m.Type().IsVariadic() {
+		argt[len(argt)-1] = argt[len(argt)-1].Elem()
+	}
 	argv, err := c.d.Deserialize(in, argt)
 	if err != nil {
 		return err
