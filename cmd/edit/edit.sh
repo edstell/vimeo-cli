@@ -23,7 +23,7 @@ if ! [ -f $2 ]; then
 fi
 
 # Check second argument is valid JSON.
-if ! python -mjson.tool "$2" > /dev/null; then
+if ! python -m json.tool "$2" > /dev/null; then
 	echo "$2 must contain valid JSON" >&2; exit 1
 fi
 
