@@ -13,3 +13,6 @@
 
 # Config
 *.json
+
+# Ignore executable
+vimeo
