@@ -9,7 +9,7 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/edstell/vimeo-cli/method"
+	"github.com/edstell/rexec"
 	"github.com/silentsokolov/go-vimeo/vimeo"
 	"golang.org/x/oauth2"
 )
@@ -34,9 +34,9 @@ func main() {
 	if len(args) < 2 {
 		exit(errors.New(fmt.Sprintf("vimeo %s [%s]", args[0], strings.Join(methodNames(service), " "))))
 	}
-	serializer := vimeoSerializer(method.JSONSerializer(method.Marshaler))
-	caller := method.NewCaller(service, method.UsingSerializer(serializer))
-	if err := caller.Call(args[1], os.Stdin, os.Stdout); err != nil {
+	serializer := vimeoSerializer(rexec.JSONSerializer(rexec.Marshaler))
+	me := rexec.NewMethodExecutor(rexec.UsingSerializer(serializer))
+	if err := me.Execute(service.MethodByName(args[1]), os.Stdin, os.Stdout); err != nil {
 		exit(err)
 	}
 }
@@ -82,9 +82,9 @@ func methodNames(v reflect.Value) []string {
 	return names
 }
 
-func vimeoSerializer(s method.Serializer) method.Serializer {
+func vimeoSerializer(s rexec.Serializer) rexec.Serializer {
 	errIface := reflect.TypeOf((*error)(nil)).Elem()
-	return method.SerializerFunc(func(w io.Writer, res []reflect.Value) error {
+	return rexec.SerializerFunc(func(w io.Writer, res []reflect.Value) error {
 		i := 0
 		// Propagate or remove errors.
 		for _, v := range res {
