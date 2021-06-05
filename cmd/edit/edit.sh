@@ -32,8 +32,5 @@ if ! command -v ./vimeo &> /dev/null; then
 	echo "'vimeo' executable missing" >&2; exit 1
 fi
 
-# Write config to a variable to pipe into our command.
-config=`cat $2`
-
 # Execute edit video command, passing in arguments provided.
-echo "[$1, $config]\n" | ./vimeo Videos Edit | python -m json.tool
+printf '[%s,%s]' $1 `cat $2` | ./vimeo Videos Edit | python -m json.tool
