@@ -1,0 +1,29 @@
+{
+	"Videos": [
+		"Edit": [
+			"{{.VideoID}}",
+			{
+				"name": "{{.Title}}",
+				"description": "{{.Description}}",
+				"privacy": {
+					"add": false,
+					"download": {{.Downloadable}},
+					"embed": "public",
+					"comments": "nobody",
+					"view": "{{.Visibility}}"
+				}
+			}
+		],
+		"AssignPreset": [
+			"{{.VideoID}}",
+			"{{.PresetID}}"
+		]
+	],
+	"Users": [
+		"AlbumAddVideo": [
+			"",
+			"{{.AlbumID}}",
+			"{{.VideoID}}"
+		]
+	]
+}
