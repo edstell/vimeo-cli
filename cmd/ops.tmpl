@@ -1,7 +1,9 @@
-{
-	"Videos": [
-		"Edit": [
-			"{{.VideoID}}",
+[
+	{
+		"service": "Videos",
+		"operation": "Edit",
+		"arguments": [
+			{{.VideoID}},
 			{
 				"name": "{{.Title}}",
 				"description": "{{.Description}}",
@@ -13,17 +15,24 @@
 					"view": "{{.Visibility}}"
 				}
 			}
-		],
-		"AssignPreset": [
-			"{{.VideoID}}",
-			"{{.PresetID}}"
 		]
-	],
-	"Users": [
-		"AlbumAddVideo": [
+	},
+	{
+		"service": "Videos",
+		"operation": "AssignPreset",
+		"arguments": [
+			{{.VideoID}},
+			{{.PresetID}}
+		]
+	},
+	{
+		"service": "Users",
+		"operation": "AlbumAddVideo",
+		"arguments": [
 			"",
 			"{{.AlbumID}}",
-			"{{.VideoID}}"
+			{{.VideoID}}
+
 		]
-	]
-}
+	}
+]

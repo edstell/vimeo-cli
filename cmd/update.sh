@@ -49,10 +49,15 @@ if [[ ! -p $config_pipe ]]; then
 fi
 trap "rm -rf $config_pipe" EXIT
 
-# Convert our config csv to json for templating.
+# Convert our config csv to json for templating, then iterate over each file
+# in the config.
 jq -c '.[]' <(jq -R -s -f $csv2json $1) | while read i; do
-	cat $ops_tmpl | $template <(echo $i)
+	jq -c '.[]' <(cat $ops_tmpl | $template <(echo $i)) | while read i; do
+		service=$(echo $i | jq -r '.service')
+		operation=$(echo $i | jq -r '.operation')
+		$(echo $i | jq -r '.arguments') | $vimeo $service $operation 
+		if [ $? -ne 0 ]; then
+			echo "failed to execute $service $operation"
+		fi
+	done
 done
-
-# Template config
-# Execute commands in config
