@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-export VIMEO_ACCESS_TOKEN=e98379f7c8f78fca87bd7660a27165a1
+export VIMEO_ACCESS_TOKEN=TODO
 
 csv2json=./csv2json.jq
 vimeo=./vimeo
